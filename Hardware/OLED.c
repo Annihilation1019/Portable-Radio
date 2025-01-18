@@ -3,6 +3,7 @@
 #include "main.h"
 #include "i2c.h"
 #include "OLED.h"
+#include <stdio.h>
 
 #define Hardware_I2C // 硬件I2C
 // #define Software_I2C // 软件I2C
@@ -570,4 +571,19 @@ void OLED_ShowBinNum(uint8_t Line, uint8_t Column, uint32_t Number, uint8_t Leng
 	{
 		OLED_ShowChar(Line, Column + i, Number / OLED_Pow(2, Length - i - 1) % 2 + '0', Mode);
 	}
+}
+
+/**
+ * @brief  OLED显示浮点数（正数）
+ * @param  Line 行位置
+ * @param  Column 列位置
+ * @param  Number 要显示的浮点数
+ * @param  Mode 字体大小，取值：OLED_8x6、OLED_12x6、OLED_8x16、OLED_24x12
+ * @retval 无
+ */
+void OLED_ShowFloat(uint8_t Line, uint8_t Column, float Number, enum OLED_MODE Mode)
+{
+	char buffer[10];
+	sprintf(buffer, "%.1f", Number);
+	OLED_ShowString(Line, Column, buffer, Mode);
 }

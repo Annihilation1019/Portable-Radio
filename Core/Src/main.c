@@ -45,7 +45,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t vol_value = 7; // 音量值
+uint8_t chan_cnt = 0;  // 频道数量
+float now_chan = 0;    // 当前频道
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,7 +58,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void ShowAllChannel(uint8_t chan_cnt);
 /* USER CODE END 0 */
 
 /**
@@ -98,7 +100,14 @@ int main(void)
     // 上电
     RDA5807_PowerOn();
     // 搜台
-    RDA5807_AutoSearch();
+    OLED_ShowString(1, 1, "Searching...", OLED_8x6);
+    chan_cnt = RDA5807_AutoSearch();
+    // 显示频道数量
+    OLED_Clear();
+    OLED_ShowString(1, 1, "Station Count:", OLED_8x6);
+    OLED_ShowNum(1, 15, chan_cnt, 2, OLED_8x6);
+    // 显示所有频道
+    ShowAllChannel(chan_cnt);
 
     /* USER CODE END 2 */
 
@@ -106,7 +115,82 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
+        // 音量调节
+        if (HAL_GPIO_ReadPin(VOL_UP_GPIO_Port, VOL_UP_Pin) == GPIO_PIN_RESET)
+        {
+            HAL_Delay(20);
+            while (HAL_GPIO_ReadPin(VOL_UP_GPIO_Port, VOL_UP_Pin) == GPIO_PIN_RESET)
+                ;
+            HAL_Delay(20);
+            if (vol_value < 15)
+                vol_value++;
+            else
+                vol_value = 15;
+            RDA5807_SetVolume(vol_value);
+            OLED_ShowString(7, 1, "Volume:          ", OLED_8x6);
+            OLED_ShowNum(7, 9, vol_value, 2, OLED_8x6);
+        }
+        if (HAL_GPIO_ReadPin(VOL_DOWM_GPIO_Port, VOL_DOWM_Pin) == GPIO_PIN_RESET)
+        {
+            HAL_Delay(20);
+            while (HAL_GPIO_ReadPin(VOL_DOWM_GPIO_Port, VOL_DOWM_Pin) == GPIO_PIN_RESET)
+                ;
+            HAL_Delay(20);
+            if (vol_value > 0)
+                vol_value--;
+            else
+                vol_value = 0;
+            RDA5807_SetVolume(vol_value);
+            OLED_ShowString(7, 1, "Volume:          ", OLED_8x6);
+            OLED_ShowNum(7, 9, vol_value, 2, OLED_8x6);
+        }
 
+        // 换台
+        if (HAL_GPIO_ReadPin(CH_UP_GPIO_Port, CH_UP_Pin) == GPIO_PIN_RESET)
+        {
+            HAL_Delay(20);
+            while (HAL_GPIO_ReadPin(CH_UP_GPIO_Port, CH_UP_Pin) == GPIO_PIN_RESET)
+                ;
+            HAL_Delay(20);
+            now_chan = RDA5807_ChangeStation(1);
+            OLED_ShowString(6, 1, "Now Channel:      ", OLED_8x6);
+            OLED_ShowFloat(6, 14, now_chan, OLED_8x6);
+        }
+        if (HAL_GPIO_ReadPin(CH_DOWN_GPIO_Port, CH_DOWN_Pin) == GPIO_PIN_RESET)
+        {
+            HAL_Delay(20);
+            while (HAL_GPIO_ReadPin(CH_DOWN_GPIO_Port, CH_DOWN_Pin) == GPIO_PIN_RESET)
+                ;
+            HAL_Delay(20);
+            now_chan = RDA5807_ChangeStation(0);
+            OLED_ShowString(6, 1, "Now Channel:      ", OLED_8x6);
+            OLED_ShowFloat(6, 14, now_chan, OLED_8x6);
+        }
+
+        // 重新搜台
+        if (HAL_GPIO_ReadPin(AUTOSEARCH_GPIO_Port, AUTOSEARCH_Pin) == GPIO_PIN_RESET)
+        {
+            HAL_Delay(20);
+            while (HAL_GPIO_ReadPin(AUTOSEARCH_GPIO_Port, AUTOSEARCH_Pin) == GPIO_PIN_RESET)
+                ;
+            HAL_Delay(20);
+            // 复位
+            chan_cnt = 0;
+            for (uint8_t i = 0; i < 25; i++)
+            {
+                channelBuf[i] = 0.0f;
+            }
+            
+            OLED_Clear();
+            OLED_ShowString(1, 1, "Searching...", OLED_8x6);
+            chan_cnt = RDA5807_AutoSearch();
+            // 显示频道数量
+            OLED_Clear();
+            OLED_ShowString(1, 1, "Station Count:", OLED_8x6);
+            OLED_ShowNum(1, 15, chan_cnt, 2, OLED_8x6);
+            // 显示所有频道
+            ShowAllChannel(chan_cnt);
+        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -160,6 +244,41 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+ * @brief  显示所有频道
+ * @param  chan_cnt: 频道数量
+ */
+void ShowAllChannel(uint8_t chan_cnt)
+{
+    // 显示频道
+    for (uint8_t i = 0; i < chan_cnt; i++)
+    {
+        if (i <= 3)
+        {
+            OLED_ShowFloat(2, 1 + i * 5, channelBuf[i], OLED_8x6);
+        }
+        else if (i > 3 && i <= 7)
+        {
+            OLED_ShowFloat(3, 1 + (i - 4) * 5, channelBuf[i], OLED_8x6);
+        }
+        else if (i > 7 && i <= 11)
+        {
+            OLED_ShowFloat(4, 1 + (i - 8) * 5, channelBuf[i], OLED_8x6);
+        }
+        else if (i > 11 && i <= 15)
+        {
+            OLED_ShowFloat(5, 1 + (i - 12) * 5, channelBuf[i], OLED_8x6);
+        }
+        else if (i > 15 && i <= 19)
+        {
+            OLED_ShowFloat(6, 1 + (i - 16) * 5, channelBuf[i], OLED_8x6);
+        }
+        else if (i > 19 && i <= 23)
+        {
+            OLED_ShowFloat(7, 1 + (i - 20) * 5, channelBuf[i], OLED_8x6);
+        }
+    }
+}
 /* USER CODE END 4 */
 
 /**

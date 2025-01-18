@@ -57,6 +57,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define AUTOSEARCH_Pin GPIO_PIN_2
+#define AUTOSEARCH_GPIO_Port GPIOE
+#define VOL_UP_Pin GPIO_PIN_3
+#define VOL_UP_GPIO_Port GPIOE
+#define VOL_DOWM_Pin GPIO_PIN_4
+#define VOL_DOWM_GPIO_Port GPIOE
 #define RA_SCL_Pin GPIO_PIN_10
 #define RA_SCL_GPIO_Port GPIOB
 #define RA_SDA_Pin GPIO_PIN_11
@@ -65,6 +71,10 @@ void Error_Handler(void);
 #define OLED_SCL_GPIO_Port GPIOB
 #define OLED_SDA_Pin GPIO_PIN_7
 #define OLED_SDA_GPIO_Port GPIOB
+#define CH_UP_Pin GPIO_PIN_0
+#define CH_UP_GPIO_Port GPIOE
+#define CH_DOWN_Pin GPIO_PIN_1
+#define CH_DOWN_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
 
